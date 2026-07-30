@@ -379,10 +379,7 @@
         <input type="checkbox" id="paidCheck">
         <span>I have completed the payment via UPI</span>
       </div>
-
-      <label>UPI transaction / reference number (UTR) <span class="req">*</span></label>
-      <input type="text" id="utr" placeholder="12-digit number from your UPI app" maxlength="30">
-      <div class="errmsg" id="utrErr">Please enter the transaction reference number shown in your UPI app after payment.</div>
+      <div class="errmsg" id="paidErr">Please complete the payment and tick the box above before submitting.</div>
 
       <div class="submit-error" id="submitError"></div>
 
@@ -564,18 +561,15 @@ function validateStep(step){
 
 /* ---------- Submit ---------- */
 async function submitRegistration(){
-  const utrEl = document.getElementById('utr');
-  const utrErr = document.getElementById('utrErr');
+  const paidErr = document.getElementById('paidErr');
   const errBox = document.getElementById('submitError');
   errBox.classList.remove('show');
 
-  if(!document.getElementById('paidCheck').checked || utrEl.value.trim().length < 4){
-    utrErr.classList.add('show');
-    utrEl.classList.add('err');
+  if(!document.getElementById('paidCheck').checked){
+    paidErr.classList.add('show');
     return;
   }
-  utrErr.classList.remove('show');
-  utrEl.classList.remove('err');
+  paidErr.classList.remove('show');
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -598,8 +592,7 @@ async function submitRegistration(){
     otherSchoolName: state.school === 'other' ? document.getElementById('otherSchoolName').value.trim() : "",
     ageCategory: state.ageCategory,
     distance: state.distance,
-    fee: state.fee,
-    utr: utrEl.value.trim()
+    fee: state.fee
   };
 
   try{
