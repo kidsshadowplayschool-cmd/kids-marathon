@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids Marathon Tambaram — Registration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  /* ===================== CONFIG — EDIT THESE ===================== */
+  /* (Also see the JS CONFIG object further down for UPI ID / Apps Script URL) */
+
+  :root{
+    --purple-deep:#2A0E4F;
+    --purple-royal:#4B1F86;
+    --purple-soft:#6B3FA0;
+    --gold:#F5B700;
+    --gold-soft:#FFDD6E;
+    --red:#E63946;
+    --cream:#FFF7E8;
+    --ink:#241442;
+    --line:#e4dcc9;
+    font-family:'Nunito',sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 20% 0%, var(--purple-royal), var(--purple-deep) 60%);
+    min-height:100vh;
+    color:var(--ink);
+    padding:24px 14px 60px;
+  }
+
+  .wrap{max-width:520px;margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  .brand{
+    text-align:center;
+    color:var(--cream);
+    margin-bottom:18px;
+  }
+  .brand .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    opacity:.9;
+  }
+  .brand h1{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:34px;
+    margin:6px 0 2px;
+    color:var(--gold);
+    text-shadow:0 2px 0 rgba(0,0,0,.25);
+    line-height:1.05;
+  }
+  .brand .sub{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    color:#fff;
+  }
+  .brand .meta{
+    margin-top:8px;
+    font-size:13px;
+    color:var(--gold-soft);
+  }
+
+  /* ---------- Checkpoint tracker ---------- */
+  .track{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:22px 4px 20px;
+    position:relative;
+  }
+  .track::before{
+    content:'';
+    position:absolute;
+    top:14px;left:20px;right:20px;
+    height:0;
+    border-top:2px dashed rgba(255,255,255,.35);
+    z-index:0;
+  }
+  .flag{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .flag .dot{
+    width:28px;height:28px;border-radius:50%;
+    background:rgba(255,255,255,.15);
+    border:2px solid rgba(255,255,255,.4);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Mono',monospace;font-weight:700;font-size:12px;
+    color:#fff;
+  }
+  .flag.done .dot{background:var(--gold);border-color:var(--gold);color:var(--purple-deep);}
+  .flag.active .dot{background:var(--red);border-color:var(--red);color:#fff;}
+  .flag .label{font-size:10px;color:rgba(255,255,255,.75);text-align:center;max-width:64px;}
+  .flag.active .label{color:var(--gold-soft);font-weight:700;}
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--cream);
+    border-radius:22px;
+    padding:26px 22px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    border:1px solid rgba(0,0,0,.04);
+  }
+  .step{display:none;}
+  .step.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  h2.step-title{
+    font-family:'Baloo 2',sans-serif;
+    font-size:20px;
+    margin:0 0 4px;
+    color:var(--purple-royal);
+  }
+  .step-hint{font-size:13px;color:#6a6178;margin:0 0 18px;}
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    margin:14px 0 6px;
+    color:var(--purple-royal);
+  }
+  label .req{color:var(--red);}
+  input[type=text],input[type=tel],input[type=date],input[type=email]{
+    width:100%;
+    padding:12px 13px;
+    border-radius:12px;
+    border:2px solid var(--line);
+    font-size:15px;
+    font-family:'Nunito',sans-serif;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus{border-color:var(--purple-soft);}
+  input.err{border-color:var(--red);}
+  .errmsg{color:var(--red);font-size:12px;margin-top:4px;display:none;}
+  .errmsg.show{display:block;}
+
+  .radio-row{display:flex;flex-direction:column;gap:10px;}
+  .radio-card{
+    display:flex;align-items:center;gap:10px;
+    border:2px solid var(--line);
+    border-radius:12px;padding:12px 14px;
+    cursor:pointer;background:#fff;
+  }
+  .radio-card input{width:auto;margin:0;}
+  .radio-card.selected{border-color:var(--purple-royal);background:#f4edff;}
+  .radio-card .rc-text{font-weight:700;font-size:14px;}
+  .radio-card .rc-sub{font-size:12px;color:#7a7186;font-weight:400;}
+
+  .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin-top:16px;}
+  .checkbox-row input{width:auto;margin-top:3px;}
+  .checkbox-row span{font-size:13px;line-height:1.4;}
+
+  .info-box{
+    margin-top:16px;
+    background:#f4edff;
+    border:1px dashed var(--purple-soft);
+    border-radius:14px;
+    padding:14px 16px;
+  }
+  .info-box .row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+  .info-box .row b{color:var(--purple-royal);}
+  .info-box .amount{
+    font-family:'Space Mono',monospace;
+    font-weight:700;font-size:26px;color:var(--red);
+    text-align:center;margin-top:8px;
+  }
+  .hidden{display:none !important;}
+
+  .qr-wrap{text-align:center;margin:16px 0;}
+  #qrcode{display:inline-block;padding:12px;background:#fff;border-radius:16px;border:2px solid var(--line);}
+  .upi-id{
+    text-align:center;font-family:'Space Mono',monospace;
+    font-size:15px;background:#fff;border:2px dashed var(--purple-soft);
+    border-radius:10px;padding:8px;margin-top:10px;color:var(--purple-royal);
+  }
+
+  .nav-row{display:flex;gap:10px;margin-top:22px;}
+  button{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    border:none;
+    border-radius:14px;
+    padding:14px 18px;
+    cursor:pointer;
+    flex:1;
+  }
+  .btn-primary{background:var(--red);color:#fff;}
+  .btn-primary:hover{background:#cf303d;}
+  .btn-secondary{background:#eee2d0;color:var(--purple-royal);flex:0 0 90px;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ---------- Bib confirmation ---------- */
+  .bib-card{
+    background:#fff;
+    border-radius:18px;
+    padding:0;
+    text-align:center;
+    overflow:hidden;
+    border:2px solid var(--purple-royal);
+  }
+  .bib-perf{
+    display:flex;justify-content:space-evenly;
+    background:var(--purple-royal);
+    padding:8px 0;
+  }
+  .bib-perf span{width:8px;height:8px;border-radius:50%;background:var(--cream);display:inline-block;}
+  .bib-strip{height:10px;}
+  .bib-body{padding:22px 20px 26px;}
+  .bib-num{
+    font-family:'Space Mono',monospace;
+    font-weight:700;font-size:56px;color:var(--purple-royal);line-height:1;
+  }
+  .bib-cat{font-family:'Baloo 2',sans-serif;font-weight:700;color:var(--red);font-size:15px;margin-top:6px;}
+  .bib-name{font-size:20px;font-weight:800;margin-top:14px;color:var(--ink);}
+  .bib-meta{font-size:13px;color:#7a7186;margin-top:6px;}
+  .bib-status{
+    margin-top:16px;display:inline-block;
+    background:#FFF3CD;color:#8a6d00;
+    padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;
+  }
+
+  .fine-print{text-align:center;font-size:11px;color:rgba(255,255,255,.55);margin-top:18px;}
+  .submit-error{
+    background:#ffe3e3;border:1px solid var(--red);color:#8a1c26;
+    padding:10px 14px;border-radius:10px;font-size:13px;margin-top:14px;display:none;
+  }
+  .submit-error.show{display:block;}
+  .spinner{
+    width:18px;height:18px;border:3px solid #fff;border-top-color:transparent;
+    border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:8px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="eyebrow">Kids Shadow Group of Schools presents</div>
+    <h1>KIDS MARATHON</h1>
+    <div class="sub">Tambaram · Calling all children to join the run</div>
+    <div class="meta">📅 9th August 2026 &nbsp;|&nbsp; 🕖 7:00 AM &nbsp;|
+    <br><h3>📍 No.36, Old State Bank Colony, West Tambaram, Chennai - 600045.</h3></div>
+  </div>
+
+  <div class="track" id="track">
+    <div class="flag active" data-step="1"><div class="dot">1</div><div class="label">Runner details</div></div>
+    <div class="flag" data-step="2"><div class="dot">2</div><div class="label">School &amp; category</div></div>
+    <div class="flag" data-step="3"><div class="dot">3</div><div class="label">Payment</div></div>
+    <div class="flag" data-step="4"><div class="dot">✓</div><div class="label">Confirmed</div></div>
+  </div>
+
+  <div class="card">
+
+    <!-- ===================== STEP 1 ===================== -->
+    <div class="step active" data-step="1">
+      <h2 class="step-title">Runner &amp; parent details</h2>
+      <p class="step-hint">Every field here is required so we can reach you on race day.</p>
+
+      <label>Child's full name <span class="req">*</span></label>
+      <input type="text" id="childName" required>
+      <div class="errmsg">Please enter the child's name.</div>
+
+      <label>Date of birth <span class="req">*</span></label>
+      <input type="date" id="dob" required>
+      <div class="errmsg" id="dobErr">Please enter a valid date of birth.</div>
+      <div class="info-box hidden" id="ageBox">
+        <div class="row"><span>Age on race day</span><b id="ageOut">–</b></div>
+        <div class="row"><span>Category</span><b id="catOut">–</b></div>
+        <div class="row"><span>Distance</span><b id="distOut">–</b></div>
+      </div>
+
+      <label>Gender <span class="req">*</span></label>
+      <div class="radio-row" id="genderRow">
+        <label class="radio-card"><input type="radio" name="gender" value="Boy"><span class="rc-text">Boy</span></label>
+        <label class="radio-card"><input type="radio" name="gender" value="Girl"><span class="rc-text">Girl</span></label>
+      </div>
+
+      <label>Parent / guardian name <span class="req">*</span></label>
+      <input type="text" id="parentName" required>
+
+      <label>Parent mobile number <span class="req">*</span></label>
+      <input type="tel" id="parentMobile" maxlength="10" placeholder="10-digit mobile number" required>
+      <div class="errmsg" id="mobileErr">Enter a valid 10-digit mobile number.</div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="sameAsParent">
+        <span>Emergency contact is the same as the parent number above</span>
+      </div>
+      <div id="emergencyWrap">
+        <label>Emergency contact number <span class="req">*</span></label>
+        <input type="tel" id="emergencyContact" maxlength="10" placeholder="10-digit mobile number" required>
+        <div class="errmsg" id="emergencyErr">Enter a valid 10-digit mobile number.</div>
+      </div>
+
+      <label>Address / area <span class="req">*</span></label>
+      <input type="text" id="address" placeholder="e.g. Tambaram West, Chennai" required>
+
+      <label>Email <span style="font-weight:400;color:#7a7186;">(optional)</span></label>
+      <input type="email" id="email">
+
+      <div class="nav-row">
+        <button class="btn-primary" onclick="goStep(2)" style="flex:1;">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ===================== STEP 2 ===================== -->
+    <div class="step" data-step="2">
+      <h2 class="step-title">School &amp; registration category</h2>
+      <p class="step-hint">The fee depends on your school — select yours below.</p>
+
+      <div class="radio-row" id="schoolRow">
+        <label class="radio-card" data-val="kidsshadow">
+          <input type="radio" name="school" value="kidsshadow">
+          <span><span class="rc-text">Kids Shadow Student</span><br><span class="rc-sub">Currently enrolled at Kids Shadow Play School</span></span>
+        </label>
+        <label class="radio-card" data-val="padasalai">
+          <input type="radio" name="school" value="padasalai">
+          <span><span class="rc-text">Padasalai Student</span><br><span class="rc-sub">Currently enrolled at Padasalai</span></span>
+        </label>
+        <label class="radio-card" data-val="other">
+          <input type="radio" name="school" value="other">
+          <span><span class="rc-text">Other School Student</span><br><span class="rc-sub">Any other school</span></span>
+        </label>
+      </div>
+
+      <div id="otherSchoolWrap" class="hidden">
+        <label>Name of your school <span class="req">*</span></label>
+        <input type="text" id="otherSchoolName">
+      </div>
+
+      <div class="info-box hidden" id="feeBox">
+        <div class="row"><span>Category</span><b id="feeCat">–</b></div>
+        <div class="row"><span>Distance</span><b id="feeDist">–</b></div>
+        <div class="row"><span>Registration fee</span><b id="feeSchool">–</b></div>
+        <div class="amount" id="feeAmount">₹ 0</div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-secondary" onclick="goStep(1)">← Back</button>
+        <button class="btn-primary" id="toPaymentBtn" onclick="goStep(3)" disabled>Continue to payment →</button>
+      </div>
+    </div>
+
+    <!-- ===================== STEP 3 ===================== -->
+    <div class="step" data-step="3">
+      <h2 class="step-title">Payment</h2>
+      <p class="step-hint">Scan the code with any UPI app and pay the exact amount shown.</p>
+
+      <div class="qr-wrap">
+        <div id="qrcode"></div>
+        <div class="upi-id" id="upiIdDisplay">–</div>
+      </div>
+      <div class="info-box" style="text-align:center;">
+        <div style="font-size:13px;color:#6a6178;">Amount to pay</div>
+        <div class="amount" id="payAmount">₹ 0</div>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="paidCheck">
+        <span>I have completed the payment via UPI</span>
+      </div>
+
+      <label>UPI transaction / reference number (UTR) <span class="req">*</span></label>
+      <input type="text" id="utr" placeholder="12-digit number from your UPI app" maxlength="30">
+      <div class="errmsg" id="utrErr">Please enter the transaction reference number shown in your UPI app after payment.</div>
+
+      <div class="submit-error" id="submitError"></div>
+
+      <div class="nav-row">
+        <button class="btn-secondary" onclick="goStep(2)">← Back</button>
+        <button class="btn-primary" id="submitBtn" onclick="submitRegistration()">Submit registration</button>
+      </div>
+    </div>
+
+    <!-- ===================== STEP 4 ===================== -->
+    <div class="step" data-step="4">
+      <h2 class="step-title">You're registered! 🎉</h2>
+      <p class="step-hint">Save a screenshot of your bib below and bring it on race day.</p>
+
+      <div class="bib-card">
+        <div class="bib-perf"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="bib-strip" id="bibStripColor"></div>
+        <div class="bib-body">
+          <div class="bib-num" id="bibNumberOut">–</div>
+          <div class="bib-cat" id="bibCatOut">–</div>
+          <div class="bib-name" id="bibNameOut">–</div>
+          <div class="bib-meta" id="bibMetaOut">–</div>
+          <div class="bib-status" id="bibStatusOut">Payment pending verification</div>
+        </div>
+      </div>
+      <p class="step-hint" style="margin-top:14px;">Your payment reference has been recorded. Our team will verify it against our bank statement and confirm your slot.</p>
+    </div>
+
+  </div>
+
+  <div class="fine-print">Kids Shadow Group of Schools | West Tambaram | 99405 40999</div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — edit these three values before publishing the form
+   ============================================================ */
+const CONFIG = {
+  UPI_ID: "oviyau-1@okaxis",              // <-- put your real UPI ID here
+  PAYEE_NAME: "Kids Shadow Marathon",     // <-- name shown to payer
+  GAS_URL: "https://script.google.com/macros/s/AKfycbxzg7i8G8GGO5dWufIVr_1L8dE-hb9NzRfGQipG7qbZc5KaouuVnZl2knrahEq0aPmh/exec", // <-- from Apps Script deployment
+  EVENT_DATE: "2026-08-09"
+};
+
+const FEES = { kidsshadow: 200, padasalai: 200, other: 250 };
+const SCHOOL_LABELS = { kidsshadow: "Kids Shadow Student", padasalai: "Padasalai Student", other: "Other School Student" };
+
+let state = { age:null, ageCategory:null, distance:null, school:null, fee:0 };
+let currentStep = 1;
+
+function goStep(n){
+  if(n > currentStep && !validateStep(currentStep)) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', +s.dataset.step === n));
+  document.querySelectorAll('.flag').forEach(f => {
+    const fs = +f.dataset.step;
+    f.classList.toggle('active', fs === n);
+    f.classList.toggle('done', fs < n);
+  });
+  currentStep = n;
+  if(n === 3) buildQR();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- Step 1 logic: age + category ---------- */
+document.getElementById('dob').addEventListener('change', function(){
+  const val = this.value;
+  const box = document.getElementById('ageBox');
+  const err = document.getElementById('dobErr');
+  if(!val){ box.classList.add('hidden'); return; }
+  const dob = new Date(val);
+  const event = new Date(CONFIG.EVENT_DATE);
+  let age = event.getFullYear() - dob.getFullYear();
+  const m = event.getMonth() - dob.getMonth();
+  if(m < 0 || (m === 0 && event.getDate() < dob.getDate())) age--;
+
+  let cat = null, dist = null;
+  if(age >= 3 && age <= 5){ cat = "3-5 Years"; dist = "0.7 Km"; }
+  else if(age >= 6 && age <= 8){ cat = "6-8 Years"; dist = "1.3 Kms"; }
+  else if(age >= 9 && age <= 12){ cat = "9-12 Years"; dist = "1.5 Kms"; }
+
+  state.age = age; state.ageCategory = cat; state.distance = dist;
+
+  if(!cat){
+    box.classList.add('hidden');
+    err.textContent = "This event is open only for children aged 3 to 12 years on race day.";
+    err.classList.add('show');
+    this.classList.add('err');
+  } else {
+    err.classList.remove('show');
+    this.classList.remove('err');
+    box.classList.remove('hidden');
+    document.getElementById('ageOut').textContent = age + " years";
+    document.getElementById('catOut').textContent = cat;
+    document.getElementById('distOut').textContent = dist;
+  }
+});
+
+document.querySelectorAll('#genderRow .radio-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('#genderRow .radio-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+  });
+});
+
+document.getElementById('sameAsParent').addEventListener('change', function(){
+  const wrap = document.getElementById('emergencyWrap');
+  const emInput = document.getElementById('emergencyContact');
+  if(this.checked){
+    wrap.classList.add('hidden');
+    emInput.removeAttribute('required');
+  } else {
+    wrap.classList.remove('hidden');
+    emInput.setAttribute('required','required');
+  }
+});
+
+/* ---------- Step 2 logic: school + fee ---------- */
+document.querySelectorAll('#schoolRow .radio-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('#schoolRow .radio-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    const val = card.dataset.val;
+    state.school = val;
+    state.fee = FEES[val];
+
+    document.getElementById('otherSchoolWrap').classList.toggle('hidden', val !== 'other');
+
+    const feeBox = document.getElementById('feeBox');
+    feeBox.classList.remove('hidden');
+    document.getElementById('feeCat').textContent = state.ageCategory || "–";
+    document.getElementById('feeDist').textContent = state.distance || "–";
+    document.getElementById('feeSchool').textContent = SCHOOL_LABELS[val];
+    document.getElementById('feeAmount').textContent = "₹ " + state.fee;
+
+    document.getElementById('toPaymentBtn').disabled = false;
+  });
+});
+
+/* ---------- Step 3: QR generation ---------- */
+function buildQR(){
+  const amount = state.fee;
+  document.getElementById('payAmount').textContent = "₹ " + amount;
+  document.getElementById('upiIdDisplay').textContent = CONFIG.UPI_ID;
+  const note = "KidsMarathon-" + (state.ageCategory || "").replace(/\s/g,'');
+  const uri = "upi://pay?pa=" + encodeURIComponent(CONFIG.UPI_ID) +
+              "&pn=" + encodeURIComponent(CONFIG.PAYEE_NAME) +
+              "&am=" + amount + "&cu=INR&tn=" + encodeURIComponent(note);
+  const el = document.getElementById('qrcode');
+  el.innerHTML = "";
+  new QRCode(el, { text: uri, width: 190, height: 190, colorDark:"#2A0E4F", colorLight:"#ffffff" });
+}
+
+/* ---------- Validation ---------- */
+function validateStep(step){
+  let ok = true;
+  if(step === 1){
+    const req = ['childName','dob','parentName','parentMobile','address'];
+    req.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el.value.trim()){ el.classList.add('err'); ok = false; } else { el.classList.remove('err'); }
+    });
+    if(!state.ageCategory){ ok = false; document.getElementById('dobErr').classList.add('show'); }
+    if(!document.querySelector('input[name=gender]:checked')) ok = false;
+    const mob = document.getElementById('parentMobile');
+    const mobErr = document.getElementById('mobileErr');
+    if(!/^\d{10}$/.test(mob.value)){ mob.classList.add('err'); mobErr.classList.add('show'); ok = false; } else { mobErr.classList.remove('show'); }
+    if(!document.getElementById('sameAsParent').checked){
+      const em = document.getElementById('emergencyContact');
+      const emErr = document.getElementById('emergencyErr');
+      if(!/^\d{10}$/.test(em.value)){ em.classList.add('err'); emErr.classList.add('show'); ok = false; } else { emErr.classList.remove('show'); }
+    }
+  }
+  if(step === 2){
+    if(!state.school) ok = false;
+    if(state.school === 'other' && !document.getElementById('otherSchoolName').value.trim()) ok = false;
+  }
+  return ok;
+}
+
+/* ---------- Submit ---------- */
+async function submitRegistration(){
+  const utrEl = document.getElementById('utr');
+  const utrErr = document.getElementById('utrErr');
+  const errBox = document.getElementById('submitError');
+  errBox.classList.remove('show');
+
+  if(!document.getElementById('paidCheck').checked || utrEl.value.trim().length < 4){
+    utrErr.classList.add('show');
+    utrEl.classList.add('err');
+    return;
+  }
+  utrErr.classList.remove('show');
+  utrEl.classList.remove('err');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Submitting…';
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    childName: document.getElementById('childName').value.trim(),
+    dob: document.getElementById('dob').value,
+    age: state.age,
+    gender: document.querySelector('input[name=gender]:checked')?.value || "",
+    parentName: document.getElementById('parentName').value.trim(),
+    parentMobile: document.getElementById('parentMobile').value.trim(),
+    emergencyContact: document.getElementById('sameAsParent').checked
+        ? document.getElementById('parentMobile').value.trim()
+        : document.getElementById('emergencyContact').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    school: SCHOOL_LABELS[state.school],
+    otherSchoolName: state.school === 'other' ? document.getElementById('otherSchoolName').value.trim() : "",
+    ageCategory: state.ageCategory,
+    distance: state.distance,
+    fee: state.fee,
+    utr: utrEl.value.trim()
+  };
+
+  try{
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.message || "Could not save your registration.");
+
+    document.getElementById('bibNumberOut').textContent = "BIB " + data.bib;
+    document.getElementById('bibCatOut').textContent = payload.ageCategory + " · " + payload.distance;
+    document.getElementById('bibNameOut').textContent = payload.childName;
+    document.getElementById('bibMetaOut').textContent = payload.school + (payload.otherSchoolName ? " – " + payload.otherSchoolName : "");
+    const stripColors = {"3-5 Years":"var(--gold)","6-8 Years":"var(--red)","9-12 Years":"var(--purple-royal)"};
+    document.getElementById('bibStripColor').style.background = stripColors[payload.ageCategory] || "var(--purple-royal)";
+
+    goStep(4);
+  } catch(e){
+    errBox.textContent = "Something went wrong: " + e.message + " Please try again, or contact us at 99405 40999.";
+    errBox.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Submit registration";
+  }
+}
+</script>
+</body>
+</html>
