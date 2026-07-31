@@ -573,9 +573,9 @@ schoolInput.addEventListener("input",function(){
   document.getElementById("toPaymentBtn").disabled=true;
   return;
  }
- if(lookup==="kids shadow"||lookup==="kidsshadow"){
+ if(lookup.includes("kids shadow")||lookup.includes("kidsshadow")||lookup.includes("kidshadow")){
    state.school="Kids Shadow"; state.fee=200;
- }else if(lookup==="padasalai"){
+ }else if(lookup.includes("padasalai")){
    state.school="Padasalai"; state.fee=200;
  }else{
    state.school=school; state.fee=250;
