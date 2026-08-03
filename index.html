@@ -383,6 +383,11 @@ select.err{
       <label>Email <span style="font-weight:400;color:#7a7186;">(optional)</span></label>
       <input type="email" id="email">
 
+      <label>Does your child have any illness? <span class="req">*</span></label>
+      <input type="text" id="childIllness" placeholder="e.g. Asthma, Allergy" required>
+      <div class="errmsg" id="illnessErr">Please answer this question — type "Nil" if your child has no illness.</div>
+      <p class="step-hint" style="margin-top:6px;">Note to parents: if your child doesn't have any illness, just type <b>Nil</b>.</p>
+
       <div class="nav-row">
         <button class="btn-primary" onclick="goStep(2)" style="flex:1;">Continue →</button>
       </div>
@@ -440,8 +445,8 @@ select.err{
 
       <label>Upload payment screenshot <span class="req">*</span></label>
       <div class="upload-box" id="uploadBox">
-        <div class="upload-hint">📸 Tap to upload a screenshot of your successful payment</div>
-        <input type="file" id="screenshotInput" accept="image/*" capture="environment">
+        <div class="upload-hint">📁 Tap to choose a screenshot of your successful payment from your gallery</div>
+        <input type="file" id="screenshotInput" accept="image/*">
       </div>
       <div class="shot-preview hidden" id="shotPreview">
         <img id="shotThumb" alt="Payment screenshot">
@@ -506,7 +511,7 @@ select.err{
 const CONFIG = {
   UPI_ID: "oviyau-1@okaxis",              // <-- put your real UPI ID here
   PAYEE_NAME: "Kids Shadow Marathon",     // <-- name shown to payer
-  GAS_URL: "https://script.google.com/macros/s/AKfycbx2HO51bkKjG5FKDc3co8dRHKhQU02zju-ddlEQcoOB7CsmheeYCD3Sa4WYeieYaXVL/exec", // <-- from Apps Script deployment
+  GAS_URL: "https://script.google.com/macros/s/AKfycbzs8xSHRPn5dbUHMt2Y5BlX8wHUFA4cD63NjuUDgFHjikK_sSSj-PuKR_dbaeakqlgE/exec", // <-- from Apps Script deployment
   EVENT_DATE: "2026-08-09"
 };
 
@@ -725,7 +730,7 @@ document.getElementById('utr').addEventListener('input', function(){
 function validateStep(step){
   let ok = true;
   if(step===1){
-    const req=['childName','dob','parentName','parentMobile','address'];
+    const req=['childName','dob','parentName','parentMobile','address','childIllness'];
     req.forEach(id=>{
       const el=document.getElementById(id);
       if(!el.value.trim()){el.classList.add('err');ok=false;}else{el.classList.remove('err');}
@@ -794,6 +799,7 @@ async function submitRegistration(){
    emergencyContact: "",
     address: document.getElementById('address').value.trim(),
     email: document.getElementById('email').value.trim(),
+    childIllness: document.getElementById('childIllness').value.trim(),
     school: document.getElementById("schoolName").value.trim(),
     ageCategory: state.ageCategory,
     distance: state.distance,
